@@ -29,5 +29,5 @@ ENV SSH_PORT 22
 
 EXPOSE ${SSH_PORT}
 
-ENTRYPOINT ["entry_point.sh"]
+ENTRYPOINT ["./entry_point.sh"]
 CMD    ["/usr/sbin/sshd", "-D", "-e"]
