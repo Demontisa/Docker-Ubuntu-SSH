@@ -25,7 +25,9 @@ ENV TZ Asia/Tokyo
 
 ENV ROOT_PASSWORD root
 
-EXPOSE 22
+ENV SSH_PORT 22
+
+EXPOSE ${SSH_PORT}
 
 ENTRYPOINT ["entry_point.sh"]
 CMD    ["/usr/sbin/sshd", "-D", "-e"]
