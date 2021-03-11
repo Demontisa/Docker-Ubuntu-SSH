@@ -1,21 +1,31 @@
-FROM ubuntu:18.04
-MAINTAINER Aleksandar Diklic "https://github.com/Demontisa"
+FROM ubuntu:20.04
+MAINTAINER "Demontisa"
 
-RUN apt-get update
+# timezone
+RUN apt update && apt install -y tzdata; \
+    apt clean;
 
-RUN apt-get install -y openssh-server
-RUN mkdir /var/run/sshd
+# sshd
+RUN mkdir /run/sshd; \
+    apt install -y openssh-server; \
+    sed -i 's/^#\(PermitRootLogin\) .*/\1 yes/' /etc/ssh/sshd_config; \
+    sed -i 's/^\(UsePAM yes\)/# \1/' /etc/ssh/sshd_config; \
+    apt clean;
 
-RUN echo 'root:root' |chpasswd
+# entrypoint
+RUN { \
+    echo '#!/bin/bash -eu'; \
+    echo 'ln -fs /usr/share/zoneinfo/${TZ} /etc/localtime'; \
+    echo 'echo "root:${ROOT_PASSWORD}" | chpasswd'; \
+    echo 'exec "$@"'; \
+    } > /usr/local/bin/entry_point.sh; \
+    chmod +x /usr/local/bin/entry_point.sh;
 
-RUN sed -ri 's/^#?PermitRootLogin\s+.*/PermitRootLogin yes/' /etc/ssh/sshd_config
-RUN sed -ri 's/UsePAM yes/#UsePAM yes/g' /etc/ssh/sshd_config
+ENV TZ Asia/Tokyo
 
-RUN mkdir /root/.ssh
-
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+ENV ROOT_PASSWORD root
 
 EXPOSE 22
 
-CMD    ["/usr/sbin/sshd", "-D"]
+ENTRYPOINT ["entry_point.sh"]
+CMD    ["/usr/sbin/sshd", "-D", "-e"]
